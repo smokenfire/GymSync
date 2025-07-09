@@ -38,7 +38,7 @@ class DiscordService {
     await prefs.setBool('discord_logged_in', false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logout realizado com sucesso.')),
+      const SnackBar(content: Text('Logout completed successfully.')),
     );
   }
 

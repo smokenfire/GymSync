@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/animated_button.dart';
@@ -65,7 +66,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _handleReconfigureGymLocation(BuildContext context) async {
     final location = await LocationService.pickGymLocation(context);
     if (location != null && mounted) {
-      // Reinicia o app para forçar reprocessamento da localização
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     }
   }
@@ -99,26 +99,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.palette),
-            title: const Text('Choose app icon'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Image.asset('assets/infinity_blue.png', width: 32),
-                  onPressed: () => _changeAppIcon(context, 'iconBlue'),
-                ),
-                IconButton(
-                  icon: Image.asset('assets/infinity_red.png', width: 32),
-                  onPressed: () => _changeAppIcon(context, 'iconRed'),
-                ),
-                IconButton(
-                  icon: Image.asset('assets/infinity_green.png', width: 32),
-                  onPressed: () => _changeAppIcon(context, 'iconGreen'),
-                ),
-              ],
+          if (Platform.isIOS)
+            ListTile(
+              leading: const Icon(Icons.palette),
+              title: const Text('Choose app icon'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Image.asset('assets/icon.png', width: 32),
+                    onPressed: () => _changeAppIcon(context, 'iconDefault'),
+                  ),
+                  IconButton(
+                    icon: Image.asset('assets/infinity_blue.png', width: 32),
+                    onPressed: () => _changeAppIcon(context, 'iconBlue'),
+                  ),
+                  IconButton(
+                    icon: Image.asset('assets/infinity_red.png', width: 32),
+                    onPressed: () => _changeAppIcon(context, 'iconRed'),
+                  ),
+                  IconButton(
+                    icon: Image.asset('assets/infinity_green.png', width: 32),
+                    onPressed: () => _changeAppIcon(context, 'iconGreen'),
+                  ),
+                ],
+              ),
             ),
+          if (Platform.isIOS) const Divider(),
+          SwitchListTile(
+            title: const Text('Dark theme'),
+            value: false,
+            onChanged: (v) {/*toggle theme*/},
           ),
           const Divider(),
           SwitchListTile(

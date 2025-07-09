@@ -111,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         discordConnected = true;
         discordUsername = user.username;
       });
-      // Salva o ID REAL do Discord!
+      // Save the REAL Discord ID!
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('onboarding_discord_id', user.id);
       await _saveProgress();
@@ -141,7 +141,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _saveProgress();
     if (!granted && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permissão de acesso à saúde é obrigatória. Por favor, conceda as permissões nas configurações.')),
+        SnackBar(content: Text('Health access permission is mandatory. Please grant permissions in settings.')),
       );
     }
     if (_allCompleted()) _goToHome();

@@ -121,7 +121,7 @@ class BackendService {
     }
   }
 
-  /// Opcional: GET status (não requer authorization pelo backend atual)
+  /// Optional: GET status (does not require authorization from the current backend)
   static Future<Map<String, dynamic>?> getStatus() async {
     final discordId = await _getDiscordId();
     if (discordId == null) return null;
