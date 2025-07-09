@@ -53,12 +53,12 @@ class NotificationService {
       actions: <AndroidNotificationAction>[
         AndroidNotificationAction(
           'pause',
-          'Pausar',
+          'Pause',
           icon: DrawableResourceAndroidBitmap('ic_pause'),
         ),
         AndroidNotificationAction(
           'stop',
-          'Parar',
+          'Stop',
           icon: DrawableResourceAndroidBitmap('ic_stop'),
         ),
       ],

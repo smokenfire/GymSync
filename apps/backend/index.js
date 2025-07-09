@@ -1,7 +1,7 @@
 /**
  * GymSync Presence Backend (Express API)
- * Corrigido: Pause, Resume e Stop agora funcionam como esperado.
- * Estrutura do status: { activity, startTimestamp, paused, pausedElapsed }
+ * Fixed: Pause, Resume and Stop now work as expected.
+ * Status structure: { activity, startTimestamp, paused, pausedElapsed }
  */
 require("dotenv").config();
 const express = require("express");
@@ -16,9 +16,9 @@ app.use(express.json());
 
 /**
  * In-memory store: Map<discord_id, { activity, startTimestamp, paused, pausedElapsed }>
- * - startTimestamp: timestamp quando começou (Date.now())
+ * - startTimestamp: timestamp when started (Date.now())
  * - paused: boolean
- * - pausedElapsed: segundos acumulados enquanto estava pausado
+ * - pausedElapsed: accumulated seconds while paused
  */
 const statusMap = new Map();
 
@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 /**
  * POST /api/v1/status
  * Body: { discord_id, status: { activity: string } }
- * Inicia uma nova atividade.
+ * Starts a new activity.
  */
 app.post("/api/v1/status", (req, res) => {
   const auth = req.headers.authorization || "";
@@ -62,7 +62,7 @@ app.post("/api/v1/status", (req, res) => {
 /**
  * POST /api/v1/status/pause
  * Body: { discord_id }
- * Pausa a atividade atual, acumulando o tempo decorrido.
+ * Pauses the current activity, accumulating the elapsed time.
  */
 app.post("/api/v1/status/pause", (req, res) => {
   const auth = req.headers.authorization || "";
@@ -98,7 +98,7 @@ app.post("/api/v1/status/pause", (req, res) => {
 /**
  * POST /api/v1/status/resume
  * Body: { discord_id }
- * Retoma a atividade pausada.
+ * Resumes the paused activity.
  */
 app.post("/api/v1/status/resume", (req, res) => {
   const auth = req.headers.authorization || "";
@@ -120,7 +120,7 @@ app.post("/api/v1/status/resume", (req, res) => {
 
   data.paused = false;
   data.startTimestamp = Date.now();
-  // pausedElapsed permanece igual
+  // pausedElapsed remains the same
   statusMap.set(discord_id, data);
 
   res.json({ ok: true });

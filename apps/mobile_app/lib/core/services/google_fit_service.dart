@@ -14,7 +14,7 @@ class GoogleFitService {
   ];
 
   static Future<bool> requestPermission({bool preferSamsung = false}) async {
-    // Permissões obrigatórias
+    // Mandatory permissions
     List<Permission> permissions = [
       Permission.activityRecognition,
       Permission.sensors,
@@ -29,7 +29,7 @@ class GoogleFitService {
       return false;
     }
 
-    // Solicita autorização do Google Fit ou Samsung Health
+    // Request authorization from Google Fit or Samsung Health
     return await GoogleFitService().requestPermissions(preferSamsung: preferSamsung);
   }
 
@@ -43,8 +43,8 @@ class GoogleFitService {
 
   static Future<bool> _isAndroid13OrUp() async {
     if (!Platform.isAndroid) return false;
-    // Android 13 = SDK 33, mas o package_info_plus ou device_info_plus pode ser usado aqui.
-    // Para simplificação do exemplo, sempre pede notification se Android.
+    // Android 13 = SDK 33, but package_info_plus or device_info_plus can be used here.
+    // For simplification of the example, always request notification if Android.
     return true;
   }
 
@@ -62,7 +62,7 @@ class GoogleFitService {
     }
   }
 
-  /// Retorna o exercício atual detalhado, se houver um em andamento
+  /// Returns the current detailed exercise, if there is one in progress
   Future<Map<String, dynamic>?> getCurrentExerciseDetailed() async {
     final now = DateTime.now();
     final start = now.subtract(const Duration(hours: 6));
@@ -87,7 +87,7 @@ class GoogleFitService {
     };
   }
 
-  /// Verifica se há algum exercício ativo atualmente (ex: caminhada, corrida, etc)
+  /// Checks if there is any active exercise currently (e.g., walking, running, etc.)
   Future<String?> getCurrentActiveExerciseType() async {
     final exercise = await getCurrentExerciseDetailed();
     if (exercise != null) {

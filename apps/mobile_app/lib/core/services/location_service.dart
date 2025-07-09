@@ -12,7 +12,7 @@ class LocationService {
       builder: (_) => _MapPickerScreen(onSelected: (latlng) => selected = latlng),
     ));
     if (selected != null) {
-      // Salva seleção em SharedPreferences
+      // Save selection in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble('gym_lat', selected!.latitude);
       await prefs.setDouble('gym_lng', selected!.longitude);

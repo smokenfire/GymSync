@@ -145,15 +145,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         SnackBar(content: Text('Health access permission is mandatory. Please grant permissions in settings.')),
       );
     }
-    // REINICIE O APP SE FOR SAMSUNG E FOI CONCEDIDO ACESSO
+    // RESTART THE APP IF IT'S SAMSUNG AND ACCESS WAS GRANTED
     if (isSamsung && granted) {
-      // Mensagem de feedback ao usuário
+      // Feedback message to the user
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('After granting access, the app will restart and redirect you to the Home screen.')),
         );
       }
-      // Aguarda um pouco para a mensagem ser exibida antes de reiniciar
+      // Wait a bit for the message to be displayed before restarting
       await Future.delayed(const Duration(seconds: 2));
       Restart.restartApp();
       return;
