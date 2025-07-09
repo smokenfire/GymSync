@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import '../widgets/animated_button.dart';
 import '../core/services/location_service.dart';
 import '../core/services/discord_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/services/notification_service.dart';
+import '../main.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,11 +20,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _discordLoggedIn = false;
   String? _discordUsername;
   bool _persistentNotification = NotificationService().enabled;
+  ThemeMode _themeMode = themeModeNotifier.value;
 
   @override
   void initState() {
     super.initState();
     _loadDiscordStatus();
+    _loadThemeMode();
   }
 
   Future<void> _loadDiscordStatus() async {
@@ -34,14 +38,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  void _loadThemeMode() {
+    setState(() {
+      _themeMode = themeModeNotifier.value;
+    });
+  }
+
   Future<void> _changeAppIcon(BuildContext context, String iconName) async {
     try {
       await _channel.invokeMethod('changeIcon', {'iconName': iconName});
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
     } on PlatformException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to change icon: ${e.message}')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to change icon: ${e.message}')),
+        );
+      }
     }
   }
 
@@ -70,12 +84,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _onThemeChanged(bool isDark) async {
+    setState(() {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+      themeModeNotifier.value = _themeMode;
+    });
+
+    final prefs = await ThemePrefs.instance;
+    await prefs.setThemeMode(_themeMode);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final discordButtonText = _discordLoggedIn
-        ? 'Logout'
-        : 'Login Discord';
-
+    final discordButtonText = _discordLoggedIn ? 'Logout' : 'Login Discord';
     final discordTileTitle = _discordLoggedIn && _discordUsername != null
         ? 'Connected as $_discordUsername'
         : 'Connect your Discord account';
@@ -111,10 +132,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: () => _changeAppIcon(context, 'iconDefault'),
                   ),
                   IconButton(
-                    icon: Image.asset('assets/infinity_blue.png', width: 32),
-                    onPressed: () => _changeAppIcon(context, 'iconBlue'),
-                  ),
-                  IconButton(
                     icon: Image.asset('assets/infinity_red.png', width: 32),
                     onPressed: () => _changeAppIcon(context, 'iconRed'),
                   ),
@@ -128,20 +145,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (Platform.isIOS) const Divider(),
           SwitchListTile(
             title: const Text('Dark theme'),
-            value: false,
-            onChanged: (v) {/*toggle theme*/},
+            value: _themeMode == ThemeMode.dark,
+            onChanged: (isDark) => _onThemeChanged(isDark),
           ),
           const Divider(),
-          SwitchListTile(
-            title: const Text('Dark theme'),
-            value: false,
-            onChanged: (v) {/*toggle theme*/},
-          ),
-          SwitchListTile(
-            title: const Text('Widget Home ON/OFF'),
-            value: true,
-            onChanged: (v) {/*...*/},
-          ),
           SwitchListTile(
             title: const Text('Persistent Notification ON/OFF'),
             value: _persistentNotification,
@@ -164,5 +171,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+}
+
+class ThemePrefs {
+  static const String _key = 'theme_mode';
+
+  ThemePrefs._privateConstructor();
+
+  static final ThemePrefs _instance = ThemePrefs._privateConstructor();
+
+  static Future<ThemePrefs> get instance async {
+    return _instance;
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, mode == ThemeMode.dark ? 'dark' : 'light');
+  }
+
+  Future<ThemeMode> getThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_key);
+    if (value == 'dark') return ThemeMode.dark;
+    if (value == 'light') return ThemeMode.light;
+    return ThemeMode.system;
   }
 }

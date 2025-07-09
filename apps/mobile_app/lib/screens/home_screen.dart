@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../widgets/circular_timer.dart';
-import '../widgets/activity_icon.dart';
 import '../widgets/discord_status_indicator.dart';
 import '../widgets/animated_button.dart';
 import '../core/services/backend_service.dart';
@@ -15,7 +15,6 @@ import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -23,9 +22,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool running = false;
   Duration elapsed = Duration.zero;
-  String activity = 'footprints';
-  String lastSession = '00:00 - footprints';
-
+  String activity = 'unknown';
+  String lastSession = '00:00 - unknown';
   LatLng? gymLocation;
   static const double gymRadiusMeters = 35.0;
   bool inGym = false;
@@ -33,23 +31,108 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _locationTimer;
   Timer? _statusTimer;
   bool _notifEnabled = true;
+  Duration lastElapsed = Duration.zero;
+  String lastActivity = 'unknown';
+  static bool _backgroundStarted = false;
 
   @override
   void initState() {
     super.initState();
-    NotificationService().init();
-    NotificationService().onAction = _onNotificationAction;
-    _startBackgroundMode();
-    _loadGymLocation().then((_) {
-      _checkIfInGym().then((_) {
-        if (inGym) {
-          _startGymFlowIfNeeded();
-        } else {
-          _checkAndStartActiveExercise();
+    _setupApp();
+    _ensureBackgroundServiceStarted();
+  }
+
+  Future<void> _ensureBackgroundServiceStarted() async {
+    if (!_backgroundStarted) {
+      _backgroundStarted = true;
+      await _requestPermissions();
+      await _startBackgroundMode();
+      await _loadGymLocation();
+      _startPersistentBackgroundLocationMonitor();
+    }
+  }
+
+  void _startPersistentBackgroundLocationMonitor() {
+    Timer.periodic(const Duration(seconds: 1), (_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final lat = prefs.getDouble('gym_lat');
+      final lng = prefs.getDouble('gym_lng');
+      if (lat == null || lng == null) return;
+      final gymLoc = LatLng(lat, lng);
+
+      try {
+        final pos = await Geolocator.getCurrentPosition();
+        final Distance distance = Distance();
+        final double dist = distance(
+          LatLng(pos.latitude, pos.longitude),
+          gymLoc,
+        );
+        final bool inside = dist <= gymRadiusMeters;
+
+        final data = await BackendService.getStatus();
+        String currentActivity = data?['status']?['activity'] ?? 'unknown';
+        bool isRunning = (data?['status']?['state'] ?? 'paused') == 'active';
+
+        if (inside && (!isRunning || currentActivity != "Gym")) {
+          await BackendService.start("Gym");
         }
-        _startLocationMonitoring();
-      });
+      } catch (e) {
+        debugPrint('Error while checking location: $e');
+      }
     });
+  }
+
+  Future<void> _setupApp() async {
+    await _requestPermissions();
+    await NotificationService().init();
+    NotificationService().onAction = _onNotificationAction;
+    await _startBackgroundMode();
+    await _loadGymLocation();
+    await _checkIfInGym();
+    await _loadBackendStatus();
+    if (inGym) {
+      _startGymFlowIfNeeded();
+    } else {
+      _checkAndStartActiveExercise();
+    }
+    _startLocationMonitoring();
+  }
+
+  Future<void> _loadBackendStatus() async {
+    final data = await BackendService.getStatus();
+    if (data != null) {
+      setState(() {
+        final status = data['status'];
+        if (status != null) {
+          activity = status['activity'] ?? activity;
+          running = (status['state'] ?? 'paused') == 'active' ? true : false;
+          int seconds = int.tryParse('${status['elapsed'] ?? '0'}') ?? 0;
+          elapsed = Duration(seconds: seconds);
+        }
+        final last = data['last_session'];
+        if (last != null) {
+          lastActivity = last['activity'] ?? lastActivity;
+          int seconds = int.tryParse('${last['elapsed'] ?? '0'}') ?? 0;
+          lastElapsed = Duration(seconds: seconds);
+          lastSession = '${_formatElapsed(lastElapsed)} - $lastActivity';
+        }
+      });
+    }
+  }
+
+  Future<void> _requestPermissions() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+    if (await Permission.location.isDenied) {
+      await Permission.location.request();
+    }
+    if (await Permission.activityRecognition.isDenied) {
+      await Permission.activityRecognition.request();
+    }
+    if (await Permission.sensors.isDenied) {
+      await Permission.sensors.request();
+    }
   }
 
   Future<void> _startBackgroundMode() async {
@@ -57,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!hasPermissions) {
       await FlutterBackground.initialize(
         androidConfig: const FlutterBackgroundAndroidConfig(
-          notificationTitle: "GymSync Running",
+          notificationTitle: "GymSync running",
           notificationText: "Your workout is being monitored in the background.",
           enableWifiLock: true,
         ),
@@ -159,7 +242,8 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         inGym = dist <= gymRadiusMeters;
       });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error while checking if in gym: $e');
       setState(() {
         inGym = false;
       });
@@ -188,6 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => running = false);
     _stopStatusUpdates();
     NotificationService().cancel();
+    await _loadBackendStatus();
   }
 
   void onResume() async {
@@ -195,6 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => running = true);
     _startStatusUpdates();
     _maybeUpdateNotification();
+    await _loadBackendStatus();
   }
 
   void onStop() async {
@@ -206,6 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     _stopStatusUpdates();
     NotificationService().cancel();
+    await _loadBackendStatus();
   }
 
   String _formatElapsed(Duration d) {
@@ -216,10 +303,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _doNothing() {}
 
+  void _openApp() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool controlsEnabled = running;
-
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -234,44 +324,48 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: SafeArea(
         child: locationChecked
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularTimer(
-                    running: running,
-                    duration: elapsed,
-                    activity: activity,
-                  ),
-                  const SizedBox(height: 24),
-                  ActivityIcon(activity: activity, size: 48),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedButton(
-                        text: running ? 'Pause' : 'Resume',
-                        onPressed: controlsEnabled
-                            ? (running ? onPause : onResume)
-                            : _doNothing,
-                        enabled: controlsEnabled,
-                      ),
-                      const SizedBox(width: 16),
-                      AnimatedButton(
-                        text: 'Stop',
-                        onPressed: controlsEnabled ? onStop : _doNothing,
-                        enabled: controlsEnabled,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Last session: $lastSession',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 24),
-                  const DiscordStatusIndicator(),
-                ],
-              )
+            ? Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularTimer(
+                  running: running,
+                  duration: elapsed,
+                  activity: activity,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedButton(
+                      text: running ? 'Pause' : 'Resume',
+                      onPressed: controlsEnabled
+                          ? (running ? onPause : onResume)
+                          : _doNothing,
+                      enabled: controlsEnabled,
+                    ),
+                    const SizedBox(width: 16),
+                    AnimatedButton(
+                      text: 'Stop',
+                      onPressed: controlsEnabled ? onStop : _doNothing,
+                      enabled: controlsEnabled,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'Last session: $lastSession',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                const DiscordStatusIndicator(),
+              ],
+            ),
+          ),
+        )
             : const Center(child: CircularProgressIndicator()),
       ),
     );

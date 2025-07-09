@@ -14,17 +14,16 @@ class NotificationService {
   bool _enabled = true;
 
   Future<void> init({GlobalKey<NavigatorState>? navigatorKey}) async {
-    final android = AndroidInitializationSettings('ic_notification');
-    final ios = DarwinInitializationSettings();
+    const AndroidInitializationSettings android = AndroidInitializationSettings('ic_notification');
+    const DarwinInitializationSettings ios = DarwinInitializationSettings();
+
     await _plugin.initialize(
-      InitializationSettings(android: android, iOS: ios),
+      const InitializationSettings(android: android, iOS: ios),
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.actionId != null && response.actionId!.isNotEmpty) {
           if (onAction != null) onAction!(response.actionId!);
-        } else {
-          if (navigatorKey != null) {
-            navigatorKey.currentState?.pushNamedAndRemoveUntil('/', (route) => false);
-          }
+        } else if (navigatorKey != null) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil('/', (route) => false);
         }
       },
     );
@@ -42,7 +41,7 @@ class NotificationService {
     required String activity,
   }) async {
     if (!_enabled) return;
-    final android = AndroidNotificationDetails(
+    const AndroidNotificationDetails android = AndroidNotificationDetails(
       'persistent_gym_channel',
       'Persistent Gym',
       channelDescription: 'Shows ongoing workout',
@@ -63,12 +62,13 @@ class NotificationService {
           icon: DrawableResourceAndroidBitmap('ic_stop'),
         ),
       ],
+      category: AndroidNotificationCategory.service,
     );
     await _plugin.show(
       1,
       elapsed,
       activity,
-      NotificationDetails(android: android),
+      const NotificationDetails(android: android),
       payload: '',
     );
   }
