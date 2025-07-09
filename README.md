@@ -1,6 +1,6 @@
-<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+<p align="center">
   <img src="./.github/assets/Logo.png" alt="GymSync Logo" />
-</div>
+</p>
 
 # GymSync - Show your gym workouts on Discord with RPC
 ---
@@ -37,10 +37,10 @@
 [![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)]()
 
 ### Tested with:
-<div style="text-align: center;">
+<p align="center">
   <img src="./.github/assets/S23-FE.png" alt="Samsung S23 FE" style="margin: 10px;" />
   <img src="./.github/assets/Samsung.png" alt="Samsung Logo" style="margin: 10px;" />
-</div>
+</p>
 
 ## License
 ![MIT License](https://img.shields.io/badge/MIT-green?style=for-the-badge)
