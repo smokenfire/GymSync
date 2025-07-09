@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'package:restart_app/restart_app.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -144,6 +145,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         SnackBar(content: Text('Health access permission is mandatory. Please grant permissions in settings.')),
       );
     }
+    // REINICIE O APP SE FOR SAMSUNG E FOI CONCEDIDO ACESSO
+    if (isSamsung && granted) {
+      // Mensagem de feedback ao usuário
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('After granting access, the app will restart and redirect you to the Home screen.')),
+        );
+      }
+      // Aguarda um pouco para a mensagem ser exibida antes de reiniciar
+      await Future.delayed(const Duration(seconds: 2));
+      Restart.restartApp();
+      return;
+    }
     if (_allCompleted()) _goToHome();
   }
 
@@ -227,16 +241,16 @@ class _StepTile extends StatelessWidget {
       title: Text(title),
       trailing: loading
           ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      )
           : AnimatedButton(
-              enabled: !status,
-              text: buttonText,
-              onPressed: onPressed,
-              small: true,
-            ),
+        enabled: !status,
+        text: buttonText,
+        onPressed: onPressed,
+        small: true,
+      ),
     );
   }
 }
