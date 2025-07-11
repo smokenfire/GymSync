@@ -6,6 +6,7 @@
     "email": "codelong@proton.me"
   },
   "version": "1.0.0",
+  "homepage": "https://github.com/TheusHen/GymSync",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
