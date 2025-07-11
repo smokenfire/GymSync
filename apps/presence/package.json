@@ -1,7 +1,10 @@
 {
   "name": "gymsync-presence",
   "description": "Show your gym workouts on Discord with Rich Presence.",
-  "author": "TheusHen",
+  "author": {
+    "name": "TheusHen",
+    "email": "codelong@proton.me"
+  },
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
@@ -34,13 +37,14 @@
       "icon": "build/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": ["AppImage", "deb", "dir"],
       "icon": "build/icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "maintainer": "TheusHen <codelong@proton.me>"
     },
     "mac": {
-      "target": ["dmg", "zip"],
-      "icon": "build/icon.icns",
+      "target": ["dmg", "zip", "dir"],
+      "icon": "build/icon.ico",
       "category": "public.app-category.utilities"
     }
   }
