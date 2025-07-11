@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
 class DiscordService {
-  static const String clientId = '1391871101734223912';
-  static const String redirectUri = ''; // your redirect URI here
+  static const String clientId = '1391871101734223912'; 
+  static const String redirectUri = 'https://gymsync-backend-orcin.vercel.app/success'; // your redirect URI here, gymsync-backend-orcin for testing
   static const String scope = 'identify';
 
   static Future<User?> connect(BuildContext context) async {

@@ -1,0 +1,33 @@
+name: Test Ninja Build
+
+on: [push, pull_request]
+
+jobs:
+  test_ninja:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Verify environments
+        run: |
+          flutter --version
+          dart --version
+          node --version
+          npm --version
+
+      - name: Install Ninja
+        run: sudo apt-get install ninja-build -y
+
+      - name: Test Ninja build
+        run: ninja -v

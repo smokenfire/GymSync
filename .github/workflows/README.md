@@ -1,27 +1,64 @@
 # GitHub Workflows for GymSync
 
-This directory contains GitHub Actions workflow files that automatically run tests for each app in the GymSync project.
+This directory contains the GitHub Actions workflow files that automatically run tests and builds for each app in the GymSync project.
 
 ## Workflows
 
-### Backend Tests (`backend-tests.yml`)
-- Runs tests for the backend Express API
-- Triggered when changes are made to files in the `apps/backend` directory
-- Uses Node.js 18 and Jest for testing
+### CI (`ci.yml`)
+- Runs tests for all apps (Backend, Mobile App, Presence App)
+- Triggered when changes are made to files in any of the `apps/backend`, `apps/mobile_app`, or `apps/presence` directories
+- Contains three jobs:
+  - **Backend Tests:** Uses Node.js 18 and Jest for testing the backend Express API
+  - **Mobile App Tests:** Uses Flutter and the built-in Flutter testing framework
+  - **Presence App Tests:** Uses Node.js 18 and Jest for testing the Electron presence app
 
-### Mobile App Tests (`mobile-app-tests.yml`)
-- Runs tests for the Flutter mobile app
-- Triggered when changes are made to files in the `apps/mobile_app` directory
-- Uses Flutter and the built-in Flutter testing framework
+### Build Desktop Presence Windows (`build-desktop-windows.yml`)
+- Builds the Presence desktop app for Windows
+- Triggered on push to `main` and on pull requests
+- Steps:
+  - Sets up Flutter and Node.js environments
+  - Installs dependencies and builds the app
+  - Zips the Windows build output
+  - Uploads the zipped artifact
 
-### Presence App Tests (`presence-tests.yml`)
-- Runs tests for the Electron presence app
-- Triggered when changes are made to files in the `apps/presence` directory
-- Uses Node.js 18 and Jest for testing
+### Build Desktop Presence MacOS (`build-desktop-macos.yml`)
+- Builds the Presence desktop app for MacOS
+- Triggered on push to `main` and on pull requests
+- Steps:
+  - Sets up Flutter and Node.js environments
+  - Installs dependencies and builds the app
+  - Zips the MacOS build output
+  - Uploads the zipped artifact
+
+### Build Desktop Presence Linux (`build-desktop-linux.yml`)
+- Builds the Presence desktop app for Linux
+- Triggered on push to `main` and on pull requests
+- Steps:
+  - Sets up Flutter and Node.js environments
+  - Installs dependencies and builds the app
+  - Zips the Linux build output
+  - Uploads the zipped artifact
+
+### Build APK with Makefile (`build-apk-makefile.yml`)
+- Builds the mobile app APK using a Makefile
+- Triggered on push to `main` and on pull requests
+- Steps:
+  - Sets up Flutter and Node.js environments
+  - Installs `make`
+  - Runs the Makefile to build the APK
+  - Uploads the APK artifact
+
+### Test Ninja Build (`test-ninja.yml`)
+- Runs a test build using Ninja
+- Triggered on push and pull requests
+- Steps:
+  - Sets up Flutter and Node.js environments
+  - Installs Ninja
+  - Runs the Ninja build command
 
 ## Manual Triggering
 
-All workflows can be manually triggered using the "workflow_dispatch" event in the GitHub Actions UI.
+The main CI workflow can be manually triggered using the "workflow_dispatch" event in the GitHub Actions UI.
 
 ## Adding New Tests
 

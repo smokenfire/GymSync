@@ -1,0 +1,43 @@
+name: Build APK with Makefile
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build_apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Verify environments
+        run: |
+          flutter --version
+          dart --version
+          node --version
+          npm --version
+
+      - name: Install dependencies for Makefile
+        run: sudo apt-get install make -y
+
+      - name: Run Makefile APK build
+        run: make apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: apps/mobile_app/build/app/outputs/flutter-apk/app-release.apk

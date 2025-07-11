@@ -1,0 +1,48 @@
+name: Build Desktop Presence Windows
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build_desktop_windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Verify environments
+        run: |
+          flutter --version
+          dart --version
+          node --version
+          npm --version
+
+      - name: Build Desktop Presence
+        run: |
+          cd apps/presence
+          npm install
+          npm run build
+
+      - name: Zip Desktop Presence Windows build
+        shell: powershell
+        run: |
+          Compress-Archive -Path apps\presence\dist\win-unpacked\* -DestinationPath apps\presence\dist\desktop-presence-windows.zip
+
+      - name: Upload Desktop Presence artifact Windows
+        uses: actions/upload-artifact@v3
+        with:
+          name: desktop-presence-windows
+          path: apps/presence/dist/desktop-presence-windows.zip

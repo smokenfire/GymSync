@@ -178,6 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startLocationMonitoring() {
+    _locationTimer?.cancel();
     _locationTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
       await _checkIfInGym();
       if (inGym) {
@@ -222,16 +223,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final lat = prefs.getDouble('gym_lat');
     final lng = prefs.getDouble('gym_lng');
-    if (lat != null && lng != null) {
-      gymLocation = LatLng(lat, lng);
-    }
     setState(() {
+      if (lat != null && lng != null) {
+        gymLocation = LatLng(lat, lng);
+      } else {
+        gymLocation = null;
+      }
       locationChecked = true;
     });
   }
 
   Future<void> _checkIfInGym() async {
-    if (gymLocation == null) return;
+    if (gymLocation == null) {
+      setState(() {
+        inGym = false;
+      });
+      return;
+    }
     try {
       final pos = await Geolocator.getCurrentPosition();
       final Distance distance = Distance();
@@ -303,10 +311,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _doNothing() {}
 
-  void _openApp() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool controlsEnabled = running;
@@ -315,8 +319,14 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            onPressed: () async {
+              await Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+              // Ao voltar das configurações, recarrega localização e estado
+              await _loadGymLocation();
+              await _checkIfInGym();
+              setState(() {}); // força rebuild
+            },
           )
         ],
         backgroundColor: Colors.transparent,
