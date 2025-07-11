@@ -25,4 +25,4 @@ build apk: build_apk check_env_target
 
 build desktop_presence: build_desktop_presence check_env_target
 
-build help: show_help
+build help: phony show_help

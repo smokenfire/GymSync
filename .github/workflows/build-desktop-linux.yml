@@ -13,11 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.22.2'
-          architecture: x64
+      - name: Install dependencies for Flutter
+        run: |
+          sudo apt update && sudo apt install -y curl git unzip xz-utils zip libglu1-mesa libc6:amd64 libstdc++6:amd64 lib32z1 libbz2-1.0:amd64
+
+      - name: Download and setup Flutter
+        run: |
+          curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.32.6-stable.tar.xz
+          tar xf flutter_linux_3.32.6-stable.tar.xz
+          echo "$(pwd)/flutter/bin" >> $GITHUB_PATH
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
