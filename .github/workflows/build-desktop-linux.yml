@@ -42,7 +42,7 @@ jobs:
           zip -r desktop-presence-linux.zip linux-unpacked
 
       - name: Upload Desktop Presence artifact Linux
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: desktop-presence-linux
           path: apps/presence/dist/desktop-presence-linux.zip

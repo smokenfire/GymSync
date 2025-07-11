@@ -42,7 +42,7 @@ jobs:
           zip -r desktop-presence-macos.zip macos-unpacked
 
       - name: Upload Desktop Presence artifact MacOS
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: desktop-presence-macos
           path: apps/presence/dist/desktop-presence-macos.zip

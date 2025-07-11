@@ -42,7 +42,7 @@ jobs:
           Compress-Archive -Path apps\presence\dist\win-unpacked\* -DestinationPath apps\presence\dist\desktop-presence-windows.zip
 
       - name: Upload Desktop Presence artifact Windows
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: desktop-presence-windows
           path: apps/presence/dist/desktop-presence-windows.zip
