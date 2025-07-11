@@ -12,6 +12,9 @@ rule build_apk
 rule build_desktop_presence
   command = cd apps/presence && npm install && npm run build
 
+rule show_help
+  command = echo "Usage: ninja apk | ninja desktop_presence"
+
 # Default
 default help
 
@@ -22,5 +25,4 @@ build apk: build_apk check_env_target
 
 build desktop_presence: build_desktop_presence check_env_target
 
-build help: phony
-  command = echo "Usage: ninja apk | ninja desktop_presence"
+build help: show_help
