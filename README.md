@@ -13,21 +13,16 @@
 
 ## Build the Project
 
-You can build **GymSync** using **Makefile** or **Ninja**, whichever you prefer.
+You can build **GymSync** using **Makefile**.
 
 ```bash
-# Using Makefile:
 make apk
 make desktop-presence
-
-# Using Ninja:
-ninja apk
-ninja desktop_presence
-````
+```
 
 > [!WARNING]
 > **Never build the APK or Presence directly by running Flutter, Dart, npm or any other command manually.**
-> Always use the **Makefile** or **Ninja** targets — they ensure that all checks and replacements run correctly.
+> Always use the **Makefile** targets — Makefile ensure that all checks and replacements run correctly.
 
 ---
 
@@ -48,7 +43,7 @@ ninja desktop_presence
 
 ## Setting up Presence
 
-1. Set up your `.env` files and compile the project using the **Makefile** or **Ninja**, or run it from the source code (you'll need to keep it running)
+1. Set up your `.env` files and compile the project using the **Makefile**, or run it from the source code (you'll need to keep it running)
 2. Keep Discord open at all times (it can be in the background)
 3. Log in to Discord and the app will run in the background
 
